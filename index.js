@@ -3,14 +3,14 @@ const request = require('request')
 const mysql = require('mysql')
 const async = require('async')
 const rootUrl = 'http://0day.ali213.net'
-const limitNum = 5 // 设置并发数
+const limitNum = 10 // 设置并发数
 
 // 数据库配置
 const conn = mysql.createConnection({
-  host: 'localhost', // 数据库IP
-  user: '***', // 数据库用户名
-  password: '***', // 数据库密码
-  database: '***', // 数据库名
+  host: '*', // 数据库IP
+  user: '*', // 数据库用户名
+  password: '*', // 数据库密码
+  database: '*', // 数据库名
   port: 3306 // 端口
 })
 
@@ -33,6 +33,17 @@ for(let i = 1; i <= 2139; i++) {
 
 var t1 = new Date().getTime() // 起始时间
 
+// 字符转浮点数
+function floatText (text) {
+  if (text === 'N/A') {
+    text = null
+  } else {
+    text = parseFloat(text)
+  }
+
+  return text
+}
+
 // 解析HTML
 function filterChapter (html) {
   var $ = cheerio.load(html)
@@ -50,14 +61,14 @@ function filterChapter (html) {
         producter = $(this).find('.ol_one_c_nav li:nth-child(4)').text().substring(5).split('/')[0],
         distributer = $(this).find('.ol_one_c_nav li:nth-child(4)').text().substring(5).split('/')[1],
         summary = $(this).find('.ol_one_c_jj').text().split('[')[0],
-        youxiaPoint = parseFloat($(this).find('.ol_one_r_pf').text()),
+        youxiaPoint = $(this).find('.ol_one_r_pf').text(),
         youxiaPointPeople = parseInt($(this).find('.ol_one_r_rs').text()),
-        IGNPoint = $(this).find('.ol_one_r_qtpf:nth-child(1) > span').text(),
-        GameSpotPoint = $(this).find('.ol_one_r_qtpf:nth-child(2) > span').text(),
-        FAMIPoint = $(this).find('.ol_one_r_qtpf:nth-child(3) > span').text()
+        IGNPoint = $(this).find('.ol_one_r_qtpf').eq(0).find('span').text(),
+        GameSpotPoint = $(this).find('.ol_one_r_qtpf').eq(1).find('span').text(),
+        FAMIPoint = $(this).find('.ol_one_r_qtpf').eq(2).find('span').text()
 
     // 合成数组
-    var game = [name, eName, series, producter, distributer, time, summary, heat, gameUrl, imgUrl, youxiaPoint, youxiaPointPeople, IGNPoint, GameSpotPoint, FAMIPoint]
+    var game = [name, eName, series, producter, distributer, time, summary, heat, gameUrl, imgUrl, parseFloat(youxiaPoint), youxiaPointPeople, floatText(IGNPoint), floatText(GameSpotPoint), floatText(FAMIPoint)]
   
     // 写入数据库
     conn.query(addData, game, (err, result) => {
@@ -76,7 +87,7 @@ function requestUrl (pageUrl, callback) {
       filterChapter(body)
       callback(console.log(`加载成功 ${pageUrl}`))
     } else {
-      console.log(`加载失败 ${pageUrl}`)
+      callback(console.log(`***加载失败 ${pageUrl}`))
     }
   })
 }
