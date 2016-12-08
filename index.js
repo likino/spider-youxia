@@ -1,18 +1,17 @@
 const cheerio = require('cheerio')
 const request = require('request')
-const fs = require('fs')
 const mysql = require('mysql')
 const async = require('async')
 const rootUrl = 'http://0day.ali213.net'
-const limitNum = 5
+const limitNum = 5 // 设置并发数
 
 // 数据库配置
 const conn = mysql.createConnection({
-  host: '121.42.164.99',
-  user: 'root',
-  password: 'liyiren158',
-  database: 'games_youmin',
-  port: 3306
+  host: 'localhost', // 数据库IP
+  user: '***', // 数据库用户名
+  password: '***', // 数据库密码
+  database: '***', // 数据库名
+  port: 3306 // 端口
 })
 
 conn.connect((err) => {
@@ -32,8 +31,7 @@ for(let i = 1; i <= 2139; i++) {
   pageUrls.push(`http://0day.ali213.net/all/1-all-0-1999-0-0-td-${i}.html`)
 }
 
-// 计时
-var t1 = new Date().getTime()
+var t1 = new Date().getTime() // 起始时间
 
 // 解析HTML
 function filterChapter (html) {
@@ -85,14 +83,12 @@ function requestUrl (pageUrl, callback) {
 
 // 控制并发
 async.mapLimit(pageUrls, limitNum, function (pageUrl, callback) {
-  // setTimeout(function() {
-    requestUrl(pageUrl, callback)
-  // }, 1000);
+  requestUrl(pageUrl, callback)
 }, function (err, result) {
   if (err) {
     console.log(err)
   } else {
-    var t2 = new Date().getTime()
+    var t2 = new Date().getTime() // 结束时间
     console.log(`全部加载完毕! 用时 ${(t2-t1)/1000} 秒`)
   }
 });
